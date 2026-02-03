@@ -1,0 +1,24 @@
+diff --git a/fesvr/device.h b/fesvr/device.h
+index 1387b745..639b8374 100644
+--- a/fesvr/device.h
++++ b/fesvr/device.h
+@@ -6,6 +6,7 @@
+ #include <cstring>
+ #include <string>
+ #include <functional>
++#include <cstdint>
+ 
+ class memif_t;
+ 
+diff --git a/fesvr/syscall.cc b/fesvr/syscall.cc
+index 298d8511..a76476a7 100644
+--- a/fesvr/syscall.cc
++++ b/fesvr/syscall.cc
+@@ -13,6 +13,7 @@
+ #include <termios.h>
+ #include <sstream>
+ #include <iostream>
++#include <cstdint>
+ using namespace std::placeholders;
+ 
+ #define RISCV_AT_FDCWD -100
