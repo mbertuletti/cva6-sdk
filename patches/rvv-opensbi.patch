@@ -1,0 +1,26 @@
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index e1d0b46..ae82a77 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -25,7 +25,7 @@
+ #define MSTATUS_MPP			(_UL(3) << MSTATUS_MPP_SHIFT)
+ #define MSTATUS_FS			_UL(0x00006000)
+ #define MSTATUS_XS			_UL(0x00018000)
+-#define MSTATUS_VS			_UL(0x01800000)
++#define MSTATUS_VS			_UL(0x00000600)
+ #define MSTATUS_MPRV			_UL(0x00020000)
+ #define MSTATUS_SUM			_UL(0x00040000)
+ #define MSTATUS_MXR			_UL(0x00080000)
+diff --git a/platform/generic/config.mk b/platform/generic/config.mk
+index 8151974..c7d239f 100644
+--- a/platform/generic/config.mk
++++ b/platform/generic/config.mk
+@@ -28,7 +28,7 @@ else
+   # This needs to be 2MB aligned for 64-bit system
+   FW_JUMP_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x200000)))
+ endif
+-FW_JUMP_FDT_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x2200000)))
++FW_JUMP_FDT_ADDR=$(shell printf "0x%X" $$(($(FW_TEXT_START) + 0x6400000)))
+ FW_PAYLOAD=y
+ ifeq ($(PLATFORM_RISCV_XLEN), 32)
+   # This needs to be 4MB aligned for 32-bit system

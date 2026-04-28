@@ -1,0 +1,39 @@
+diff --git a/arch/riscv/Makefile b/arch/riscv/Makefile
+index 0b80eb8d86..52fc4db0c0 100644
+--- a/arch/riscv/Makefile
++++ b/arch/riscv/Makefile
+@@ -24,7 +24,7 @@ ifeq ($(CONFIG_CMODEL_MEDANY),y)
+ 	CMODEL = medany
+ endif
+ 
+-ARCH_FLAGS = -march=$(ARCH_BASE)$(ARCH_A)$(ARCH_C) -mabi=$(ABI) \
++ARCH_FLAGS = -march=$(ARCH_BASE)$(ARCH_A)$(ARCH_C)_zicsr_zifenceei -mabi=$(ABI) \
+ 	     -mcmodel=$(CMODEL)
+ 
+ PLATFORM_CPPFLAGS	+= $(ARCH_FLAGS)
+diff --git a/configs/pulp-platform_cheshire_defconfig b/configs/pulp-platform_cheshire_defconfig
+index 152f1c61c8..ec78bdeea7 100644
+--- a/configs/pulp-platform_cheshire_defconfig
++++ b/configs/pulp-platform_cheshire_defconfig
+@@ -10,7 +10,7 @@ CONFIG_BOOTDELAY=5
+ CONFIG_HUSH_PARSER=y
+ CONFIG_USE_BOOTCOMMAND=y
+ # Boot with mmc if mmc probes normally, else boot with spi (get CS from "boot-with" in device tree)
+-CONFIG_BOOTCOMMAND="fdt addr ${fdtcontroladdr}; if mmc info; then mmc read 90000000 2000 5000; else fdt get value boot-with /soc/spi boot-with; if sf probe 0:${boot-with}; then sf read 90000000 400000 800000; fi; fi; bootm 90000000 - ${fdtcontroladdr};"
++CONFIG_BOOTCOMMAND="fdt addr ${fdtcontroladdr}; if mmc info; then fatload mmc 0:4 90000000 uImage; else fdt get value boot-with /soc/spi boot-with; if sf probe 0:${boot-with}; then sf read 90000000 400000 8000000; fi; fi; bootm 90000000 - ${fdtcontroladdr};"
+ CONFIG_DISPLAY_CPUINFO=y
+ CONFIG_SPL_SPI_FLASH_MTD=y
+ CONFIG_CMD_GPT=y
+diff --git a/include/configs/pulp-platform_cheshire.h b/include/configs/pulp-platform_cheshire.h
+index 03abd149cb..04a0fad53a 100644
+--- a/include/configs/pulp-platform_cheshire.h
++++ b/include/configs/pulp-platform_cheshire.h
+@@ -9,7 +9,7 @@
+ #define CONFIG_SYS_LOAD_ADDR		(CONFIG_SYS_SDRAM_BASE + SZ_2M)
+ 
+ #define CONFIG_SYS_MALLOC_LEN       SZ_8M
+-#define CONFIG_SYS_BOOTM_LEN        SZ_64M
++#define CONFIG_SYS_BOOTM_LEN        SZ_128M
+ 
+ #define CONFIG_SYS_MAX_FLASH_BANKS 1
+ #define CONFIG_SYS_FLASH_BASE 0x0
