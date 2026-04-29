@@ -13,6 +13,11 @@ CC          := $(TOOLCHAIN_PREFIX)gcc
 OBJCOPY     := $(TOOLCHAIN_PREFIX)objcopy
 MKIMAGE     := u-boot/tools/mkimage
 
+HOST_CC     ?= gcc
+HOST_CXX    ?= g++
+# Some environments set CCACHE_DIR="" (still "defined"), which breaks '?='.
+CCACHE_DIR  := $(if $(strip $(CCACHE_DIR)),$(CCACHE_DIR),$(ROOT)/.ccache)
+
 NR_CORES := $(shell nproc)
 
 # SBI options
@@ -64,9 +69,10 @@ install-dir:
 	mkdir -p $(RISCV)
 
 isa-sim: install-dir $(CC) 
+	rm -rf riscv-isa-sim/build
 	mkdir -p riscv-isa-sim/build
 	cd riscv-isa-sim/build;\
-	../configure $(isa-sim-co);\
+	../configure $(isa-sim-co) CC=$(HOST_CC) CXX=$(HOST_CXX);\
 	make $(isa-sim-mk);\
 	make install;\
 	cd $(ROOT)
@@ -81,8 +87,11 @@ tests: install-dir $(CC)
 	cd $(ROOT)
 
 $(CC): $(buildroot_defconfig) $(linux_defconfig) $(busybox_defconfig)
-	make -C buildroot defconfig BR2_DEFCONFIG=../$(buildroot_defconfig)
-	make -C buildroot host-gcc-final $(buildroot-mk)
+	mkdir -p $(CCACHE_DIR)/tmp
+	CCACHE_DIR=$(CCACHE_DIR) CCACHE_TEMPDIR=$(CCACHE_DIR)/tmp \
+		make -C buildroot defconfig BR2_DEFCONFIG=../$(buildroot_defconfig)
+	CCACHE_DIR=$(CCACHE_DIR) CCACHE_TEMPDIR=$(CCACHE_DIR)/tmp \
+		make -C buildroot host-gcc-final $(buildroot-mk)
 
 all: $(CC) isa-sim
 
@@ -103,7 +112,9 @@ endif
 
 $(RISCV)/vmlinux: $(buildroot_defconfig) $(linux_defconfig) $(busybox_defconfig) $(CC) rootfs/cachetest.elf rootfs/tetris
 	mkdir -p $(RISCV)
-	make -C buildroot $(buildroot-mk)
+	mkdir -p $(CCACHE_DIR)/tmp
+	CCACHE_DIR=$(CCACHE_DIR) CCACHE_TEMPDIR=$(CCACHE_DIR)/tmp \
+		make -C buildroot $(buildroot-mk)
 	cp buildroot/output/images/vmlinux $@
 
 $(RISCV)/Image: $(RISCV)/vmlinux
@@ -126,7 +137,9 @@ $(RISCV)/u-boot.bin: u-boot/u-boot.bin
 
 $(MKIMAGE) u-boot/u-boot.bin: $(CC)
 	make -C u-boot pulp-platform_cheshire_defconfig
-	make -C u-boot CROSS_COMPILE=$(TOOLCHAIN_PREFIX)
+	mkdir -p $(CCACHE_DIR)/tmp
+	CCACHE_DIR=$(CCACHE_DIR) CCACHE_TEMPDIR=$(CCACHE_DIR)/tmp \
+		make -C u-boot CROSS_COMPILE=$(TOOLCHAIN_PREFIX)
 
 # OpenSBI with u-boot as payload
 $(RISCV)/fw_payload.bin: $(RISCV)/u-boot.bin
